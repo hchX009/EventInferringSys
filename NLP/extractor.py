@@ -1,6 +1,7 @@
+import os
 import re
-import jieba.posseg as pseg
 from pyltp import SentenceSplitter
+from pyltp import Segmentor
 
 
 # 长句切分。将段落分句，将一段话或一篇文章中的文字按句子分开，按句子形成独立的单元。返回切分好的句子列表
@@ -13,7 +14,7 @@ def get_sentences(content):
 
 
 # 短句切分。将长句按逗号和顿号切分为短句。返回切分好的短句列表
-def get_subsnets(sentence):
+def get_subsents(sentence):
     subsents_list = list()
     subsents = re.split(r'[，：,:]', sentence)
     # 消去长度为0的子句，并将子句加入列表中
@@ -23,14 +24,39 @@ def get_subsnets(sentence):
     return subsents_list
 
 
+# pyltp分词。
+def get_words(sent):
+    cws_model_path = os.path.join(os.path.dirname(__file__), 'ltp_data_v3.4.0/cws.model')  # 分词模型路径，模型名称为`cws.model`
+    lexicon_path = os.path.join(os.path.dirname(__file__), 'ltp_data_v3.4.0/lexicon.txt')  # 参数lexicon是自定义词典的文件路径
+
+    print('\n' + cws_model_path + '\n')
+
+    print(sent)
+    segmentor = Segmentor()
+
+    segmentor.load_with_lexicon(cws_model_path, lexicon_path)
+
+    words = segmentor.segment(sent)  # 分词
+
+    # print('/'.join(words))
+
+    segmentor.release()
+
+    return words
+
+
 # 处理段落content
 def process_content(content):
     sentences = get_sentences(content)
     print('\n'.join(sentences))
     print('\n')
+    subsents = list()
     for sentence in sentences:
-        subsents = get_subsnets(sentence)
+        subsents = get_subsents(sentence)
         print(' / '.join(subsents))
+
+    print('/'.join(get_words(subsents[0])))
+
     return
 
 
