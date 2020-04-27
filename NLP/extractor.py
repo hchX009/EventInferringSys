@@ -1,7 +1,20 @@
+# python 3.5
+# pyltp 0.2.3
+#   git clone http://github.com/HIT-SCIR/pyltp
+#   cd pyltp
+#   git submodule init
+#   git submodule update
+#   python setup.py install
+# ltp model 3.4.0
+
+
 import os
 import re
+import jieba
+import jieba.posseg
 from pyltp import SentenceSplitter
 from pyltp import Segmentor
+from pyltp import Postagger
 
 
 # 长句切分。将段落分句，将一段话或一篇文章中的文字按句子分开，按句子形成独立的单元。返回切分好的句子列表
@@ -25,24 +38,54 @@ def get_subsents(sentence):
 
 
 # pyltp分词。
-def get_words(sent):
-    cws_model_path = os.path.join(os.path.dirname(__file__), 'ltp_data_v3.4.0/cws.model')  # 分词模型路径，模型名称为`cws.model`
-    lexicon_path = os.path.join(os.path.dirname(__file__), 'ltp_data_v3.4.0/lexicon.txt')  # 参数lexicon是自定义词典的文件路径
-
-    print('\n' + cws_model_path + '\n')
-
-    print(sent)
+# 公安部 / 将 / 1712 / 名 / 涉黑 / 涉恶 / 逃犯 / 列为 / “ / 清零 / ” / 行动 / 目标 / 逃犯
+def get_words_by_pyltp(sent):
+    words_list = list()
+    # 分词模型路径，模型名称为`cws.model`
+    cws_model_path = os.path.join(os.path.dirname(__file__), 'ltp_data_v3.4.0/cws.model')
+    # dictionary是自定义词典的文件路径
+    dictonary_path = os.path.join(os.path.dirname(__file__), 'ltp_data_v3.4.0/dictionary.txt')
     segmentor = Segmentor()
-
-    segmentor.load_with_lexicon(cws_model_path, lexicon_path)
-
-    words = segmentor.segment(sent)  # 分词
-
-    # print('/'.join(words))
-
+    segmentor.load_with_lexicon(cws_model_path, dictonary_path)
+    # 分词
+    words = segmentor.segment(sent)
     segmentor.release()
+    words_list = list(words)
+    return words_list
 
-    return words
+
+# pyltp标注词性
+def get_wordspos_by_pyltp(words_list):
+    pos_list = list()
+    # 词性标注模型路径，模型名称为‘pos.model’
+    pos_model_path = os.path.join(os.path.dirname(__file__), 'ltp_data_v3.4.0/pos.model')
+    postagger = Postagger()
+    postagger.load(pos_model_path)
+    postags = postagger.postag(words_list)
+    postagger.release()
+    pos_list = list(postags)
+    return pos_list
+
+
+# jieba分词
+# 公安部 / 将 / 1712 / 名涉 / 黑涉 / 恶 / 逃犯 / 列为 / “ / 清零 / ” / 行动 / 目标 / 逃犯
+def get_words_by_jieba(sent):
+    words_list = list()
+    words = jieba.cut(sent)
+    words_list = list(words)
+    return words_list
+
+
+# jieba分词并标注词性
+def get_wordpos_by_jieba(words_list):
+    pos_list = list()
+    sent = ''
+    for word in words_list:
+        sent += word
+    words = jieba.posseg.cut(sent, use_paddle=True)
+    for word, flag in words:
+        pos_list.append(flag)
+    return pos_list
 
 
 # 处理段落content
@@ -54,9 +97,16 @@ def process_content(content):
     for sentence in sentences:
         subsents = get_subsents(sentence)
         print(' / '.join(subsents))
-
-    print('/'.join(get_words(subsents[0])))
-
+    print('\n')
+    print('pyltp:')
+    pyltp_words_list = get_words_by_pyltp(subsents[0])
+    print(' / '.join(pyltp_words_list))
+    # print('jieba:')
+    # jieba_words_list = get_words_by_jieba(subsents[0])
+    # print(' / '.join(jieba_words_list))
+    # print('\n')
+    # print(get_wordpos_by_jieba(pyltp_words_list))
+    print(get_wordspos_by_pyltp(pyltp_words_list))
     return
 
 
@@ -72,8 +122,10 @@ def main():
     拟定共同应对朝鲜挑衅和核计划的方案。
     '''
     test_content2 = '''
-        测试文件是根据粒度和(长短句)的大小所编写得特殊句子：分别为这个东西、那个东西以及另外一些东西？
-    他们来了；我们也来了；都来了。
+    甲吃了饭。
+    乙没吃饭。
+    吃了饭可以玩。
+    没吃饭不能玩。
     '''
     test_content3 = '''
     公安部近日组织全国公安机关开展扫黑除恶
@@ -83,7 +135,7 @@ def main():
     逃人员发布A级通缉令↓见到这些人请报警，
     转发扩散！
     '''
-    process_content(test_content3)
+    process_content(test_content2)
     return
 
 
