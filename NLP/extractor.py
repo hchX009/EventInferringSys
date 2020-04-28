@@ -15,6 +15,8 @@ import jieba.posseg
 from pyltp import SentenceSplitter
 from pyltp import Segmentor
 from pyltp import Postagger
+from pyltp import NamedEntityRecognizer
+from pyltp import Parser
 
 
 # 长句切分。将段落分句，将一段话或一篇文章中的文字按句子分开，按句子形成独立的单元。返回切分好的句子列表
@@ -55,16 +57,42 @@ def get_words_by_pyltp(sent):
 
 
 # pyltp标注词性
-def get_wordspos_by_pyltp(words_list):
-    pos_list = list()
+def get_postags_by_pyltp(words_list):
+    postags_list = list()
     # 词性标注模型路径，模型名称为‘pos.model’
     pos_model_path = os.path.join(os.path.dirname(__file__), 'ltp_data_v3.4.0/pos.model')
     postagger = Postagger()
     postagger.load(pos_model_path)
     postags = postagger.postag(words_list)
     postagger.release()
-    pos_list = list(postags)
-    return pos_list
+    postags_list = list(postags)
+    return postags_list
+
+
+# pyltp命名实体识别
+def get_entity_by_pyltp(words_list, postags_list):
+    entitys_list = list()
+    # 实体命名识别模型路径，模型名称为‘ner.model’
+    ner_model_path = os.path.join(os.path.dirname(__file__), 'ltp_data_v3.4.0/ner.model')
+    recongnizer = NamedEntityRecognizer()
+    recongnizer.load(ner_model_path)
+    netags = recongnizer.recognize(words_list, postags_list)
+    recongnizer.release()
+    entitys_list = list(netags)
+    return entitys_list
+
+
+# pyltp依存句法分析
+def get_parser_by_pyltp(words_list, postags_list):
+    arcs_list = list()
+    # 依存句法分析模型路径，模型名称为‘ner.model’
+    par_model_path = os.path.join(os.path.dirname(__file__), 'ltp_data_v3.4.0/parser.model')
+    parser = Parser()
+    parser.load(par_model_path)
+    arcs = parser.parse(words_list, postags_list)
+    parser.release()
+    arcs_list = list(arcs)
+    return arcs_list
 
 
 # jieba分词
@@ -77,15 +105,15 @@ def get_words_by_jieba(sent):
 
 
 # jieba分词并标注词性
-def get_wordpos_by_jieba(words_list):
-    pos_list = list()
+def get_postags_by_jieba(words_list):
+    postags_list = list()
     sent = ''
     for word in words_list:
         sent += word
     words = jieba.posseg.cut(sent, use_paddle=True)
     for word, flag in words:
-        pos_list.append(flag)
-    return pos_list
+        postags_list.append(flag)
+    return postags_list
 
 
 # 处理段落content
@@ -99,14 +127,17 @@ def process_content(content):
         print(' / '.join(subsents))
     print('\n')
     print('pyltp:')
-    pyltp_words_list = get_words_by_pyltp(subsents[0])
+    pyltp_words_list = get_words_by_pyltp(sentences[0])
     print(' / '.join(pyltp_words_list))
     # print('jieba:')
     # jieba_words_list = get_words_by_jieba(subsents[0])
     # print(' / '.join(jieba_words_list))
     # print('\n')
     # print(get_wordpos_by_jieba(pyltp_words_list))
-    print(get_wordspos_by_pyltp(pyltp_words_list))
+    pyltp_postags_list = get_postags_by_pyltp(pyltp_words_list)
+    print(pyltp_postags_list)
+    print(get_entity_by_pyltp(pyltp_words_list, pyltp_postags_list))
+    print(' / '.join(i.relation for i in get_parser_by_pyltp(pyltp_words_list, pyltp_postags_list)))
     return
 
 
@@ -135,7 +166,7 @@ def main():
     逃人员发布A级通缉令↓见到这些人请报警，
     转发扩散！
     '''
-    process_content(test_content2)
+    process_content(test_content3)
     return
 
 
