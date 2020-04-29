@@ -18,35 +18,11 @@ from pyltp import SentenceSplitter, Segmentor, Postagger, NamedEntityRecognizer,
 
 
 class LtpParser:
+
+    ltp_dir_path = "./ltp_data_v3.4.0"
+
     def __init__(self):
-        ltp_dir_path = "./ltp_data_v3.4.0"
-        # 分词模型路径，模型名称为’cws.model‘
-        cws_model_path = os.path.join(ltp_dir_path, "cws.model")
-        # dict是自定义词典的文件路径
-        dict_path = os.path.join(ltp_dir_path, "dict.txt")
-        # 词性标注模型路径，模型名称为‘pos.model’
-        pos_model_path = os.path.join(ltp_dir_path, "pos.model")
-        # 实体命名识别模型路径，模型名称为‘ner.model’
-        ner_model_path = os.path.join(ltp_dir_path, "ner.model")
-        # 依存句法分析模型路径，模型名称为‘parser.model’
-        par_model_path = os.path.join(ltp_dir_path, "parser.model")
-        # 语义角色标注模型路径，模型名称为‘pisrl.model’
-        srl_model_path = os.path.join(ltp_dir_path, "pisrl.model")
-
-        self.segmentor = Segmentor()
-        self.segmentor.load_with_lexicon(cws_model_path, dict_path)
-
-        self.postagger = Postagger()
-        self.postagger.load(pos_model_path)
-
-        self.recognizer = NamedEntityRecognizer()
-        self.recognizer.load(ner_model_path)
-
-        self.parser = Parser()
-        self.parser.load(par_model_path)
-
-        self.labeller = SementicRoleLabeller()
-        self.labeller.load(srl_model_path)
+        pass
 
     # 长句切分。将段落分句，将一段话或一篇文章中的文字按句子分开，按句子形成独立的单元。返回切分好的句子列表
     def get_sentences(self, content):
@@ -69,40 +45,62 @@ class LtpParser:
     # pyltp分词
     def get_words_by_pyltp(self, sent):
         words_list = list()
-        words = self.segmentor.segment(sent)
-        self.segmentor.release()
+        # 分词模型路径，模型名称为’cws.model‘
+        cws_model_path = os.path.join(self.ltp_dir_path, "cws.model")
+        # dict是自定义词典的文件路径
+        dict_path = os.path.join(self.ltp_dir_path, "dict.txt")
+        segmentor = Segmentor()
+        segmentor.load_with_lexicon(cws_model_path, dict_path)
+        words = segmentor.segment(sent)
+        segmentor.release()
         words_list = list(words)
         return words_list
 
     # pyltp标注词性
     def get_postags_by_pyltp(self, words_list):
         postags_list = list()
-        postags = self.postagger.postag(words_list)
-        self.postagger.release()
+        # 词性标注模型路径，模型名称为‘pos.model’
+        pos_model_path = os.path.join(self.ltp_dir_path, "pos.model")
+        postagger = Postagger()
+        postagger.load(pos_model_path)
+        postags = postagger.postag(words_list)
+        postagger.release()
         postags_list = list(postags)
         return postags_list
 
     # pyltp命名实体识别
     def get_netags_by_pyltp(self, words_list, postags_list):
         netags_list = list()
-        netags = self.recognizer.recognize(words_list, postags_list)
-        self.recongnizer.release()
+        # 实体命名识别模型路径，模型名称为‘ner.model’
+        ner_model_path = os.path.join(self.ltp_dir_path, "ner.model")
+        recognizer = NamedEntityRecognizer()
+        recognizer.load(ner_model_path)
+        netags = recognizer.recognize(words_list, postags_list)
+        recognizer.release()
         netags_list = list(netags)
         return netags_list
 
     # pyltp依存句法分析
     def get_arcs_by_pyltp(self, words_list, postags_list):
         arcs_list = list()
-        arcs = self.parser.parse(words_list, postags_list)
-        self.parser.release()
+        # 依存句法分析模型路径，模型名称为‘parser.model’
+        par_model_path = os.path.join(self.ltp_dir_path, "parser.model")
+        parser = Parser()
+        parser.load(par_model_path)
+        arcs = parser.parse(words_list, postags_list)
+        parser.release()
         arcs_list = list(arcs)
         return arcs_list
 
     # pyltp语义角色标注
     def get_roles_by_pyltp(self, words_list, postags_list, arcs_list):
         roles_list = list()
-        roles = self.labeller.label(words_list, postags_list, arcs_list)
-        self.labeller.release()
+        # 语义角色标注模型路径，模型名称为‘pisrl.model’
+        srl_model_path = os.path.join(self.ltp_dir_path, "pisrl.model")
+        labeller = SementicRoleLabeller()
+        labeller.load(srl_model_path)
+        roles = labeller.label(words_list, postags_list, arcs_list)
+        labeller.release()
         roles_list = list(roles)
         return roles_list
 
@@ -159,15 +157,23 @@ class LtpParser:
             data['words_list'] = self.get_words_by_pyltp(subsent)
             data['postags_list'] = self.get_postags_by_pyltp(data['words_list'])
             data['arcs_list'] = self.get_arcs_by_pyltp(data['words_list'], data['postags_list'])
-            #data['roles_dict'] = self.get_format_roles_dict(data['words_list'], data['postags_list'], data['arcs_list'])
+            data['roles_dict'] = self.get_format_roles_dict(data['words_list'], data['postags_list'], data['arcs_list'])
             data['child_nodes_dict_list'] = self.get_words_child_nodes_dict_list(data['words_list'], data['arcs_list'])
             data['format_arcs_list'] = self.get_format_arcs_list(\
                 data['words_list'], data['postags_list'], data['arcs_list'])
             datas_list.append(data)
         return datas_list
 
+
 if __name__ == '__main__':
     ltp_parse = LtpParser()
     content = "李克强总理今天来我家了，我感到非常荣幸"
-    datas_list = ltp_parse.ltp_parser_main(content)
-    print(datas_list[0]['format_arcs_list'][3])
+    content1 = '''
+        公安部近日组织全国公安机关开展扫黑除恶
+        追逃“清零”行动。公安部将1712名涉黑涉恶
+        逃犯列为“清零”行动目标逃犯，逐一明确追
+        逃责任人，实行挂账督捕，并对13名重点在
+        逃人员发布A级通缉令。
+        '''
+    datas_list = ltp_parse.ltp_parser_main(content1)
+    print(datas_list)
