@@ -1,6 +1,6 @@
 # /usr/bin/env python3
 # coding: utf-8
-# File: event_extracto.py
+# File: event_extractor.py
 # Author: hchX009
 # python 3.5
 
