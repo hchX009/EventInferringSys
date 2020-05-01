@@ -24,19 +24,43 @@ class EventExtrator:
                         postags_list[word_index][0] not in ['w', 'u', 'x'] and words_list[word_index])
             if s and o:
                 triple = [s, v, o]
+        elif 'A0' in role.keys():
+            s = ''.join(words_list[word_index] for word_index in range(role['A0'][1], role['A0'][2] + 1) if
+                        postags_list[word_index][0] not in ['w', 'u', 'x'] and words_list[word_index])
+            o = ''
+            if s:
+                triple = [s, v, o]
+        elif 'A1' in role.keys():
+            s = ''
+            o = ''.join(words_list[word_index] for word_index in range(role['A1'][1], role['A1'][2] + 1) if
+                        postags_list[word_index][0] not in ['w', 'u', 'x'] and words_list[word_index])
+            if o:
+                triple = [s, v, o]
         return triple
 
     # 通过依存句法进行以谓语为中心的三元组提取，前置宾语的句子暂时没考虑
     def get_triple_from_arcs(self, words_list, postags_list, child_nodes_dict_list, format_arcs_list, index):
         triple = list()
         child_nodes_dict = child_nodes_dict_list[index]
-        # 主谓宾
+        # 谓宾，主谓，主谓宾
         if 'SBV' in child_nodes_dict and 'VOB' in child_nodes_dict:
             v = words_list[index]
             s = self.complete_subject_or_object(
                 words_list, postags_list, child_nodes_dict_list, child_nodes_dict['SBV'][0])
             o = self.complete_subject_or_object(
                 words_list, postags_list, child_nodes_dict_list, child_nodes_dict['VOB'][0])
+            triple = [s, v, o]
+        elif 'VOB' in child_nodes_dict:
+            v = words_list[index]
+            s = ''
+            o = self.complete_subject_or_object(
+                words_list, postags_list, child_nodes_dict_list, child_nodes_dict['VOB'][0])
+            triple = [s, v, o]
+        elif 'SVB' in child_nodes_dict:
+            v = words_list[index]
+            s = self.complete_subject_or_object(
+                words_list, postags_list, child_nodes_dict_list, child_nodes_dict['VOB'][0])
+            o = ''
             triple = [s, v, o]
         # 含有介宾关系的主谓动补关系
         if 'SBV' in child_nodes_dict and 'CMP' in child_nodes_dict:
@@ -75,9 +99,17 @@ class EventExtrator:
             for index in range(len(child_nodes_dict['ATT'])):
                 prefix += self.complete_subject_or_object(
                     words_list, postags_list, child_nodes_dict_list, child_nodes_dict['ATT'][index])
+        # 提取状中关系，主要是解决否定词问题
+        if 'ADV' in child_nodes_dict:
+            for index in range(len(child_nodes_dict['ADV'])):
+                prefix += self.complete_subject_or_object(
+                    words_list, postags_list, child_nodes_dict_list, child_nodes_dict['ADV'][index])
         postfix = ""
         if postags_list[word_index] == 'v':
             # 如果输入的是动词，存在动宾关系，添加其宾语
+            if 'CMP' in child_nodes_dict:
+                postfix += self.complete_subject_or_object(
+                    words_list, postags_list, child_nodes_dict_list, child_nodes_dict['CMP'][0])
             if 'VOB' in child_nodes_dict:
                 postfix += self.complete_subject_or_object(
                     words_list, postags_list, child_nodes_dict_list, child_nodes_dict['VOB'][0])
@@ -87,7 +119,7 @@ class EventExtrator:
                     words_list, postags_list, child_nodes_dict_list, child_nodes_dict['SBV'][0]) + prefix
         return prefix + words_list[word_index] + postfix
 
-    # 得到事件三元组，主要识别主谓宾事件
+    # 得到事件三元组，主要识别主谓宾和谓宾事件
     def get_event_triples(self, data):
         event_triples_list = list()
         words_list = data['words_list']
@@ -106,8 +138,11 @@ class EventExtrator:
             if postags_list[index] == 'v' and not event_triple:
                 event_triple = self.get_triple_from_arcs(words_list, postags_list,
                                                          child_nodes_dict_list, format_arcs_list, index)
-                event_triples_list.append(event_triple)
+                if event_triple:
+                    event_triples_list.append(event_triple)
         return event_triples_list
+
+    # 过滤掉属于从句或者多余的event_triple
 
     # 主控制函数
     def event_extrator_main(self, content):

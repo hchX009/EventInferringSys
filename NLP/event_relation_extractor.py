@@ -102,7 +102,7 @@ class EventRelationExtractor:
                     [['由于'], ['从而', '为此', '因而', '致使', '以致于', '以至于', '所以', '于是', '故', '为此', '因此'], 'causality'],
                     [['既然'], ['所以', '却', '因此'], 'causality'],
                     [[], ['从而', '为此', '因而', '致使', '以致于', '以至于', '所以', '于是', '故', '故而', '因此', '以致', '以至'], 'causality'],
-                    [[], ['使', '牵动', '导向', '导致', '勾起', '引入', '指引', '予以', '产生', '促成', '造成', '引导', '造就', '促使', '酿成',
+                    [[], ['使', '结果', '牵动', '导向', '导致', '勾起', '引入', '指引', '予以', '产生', '促成', '造成', '引导', '造就', '促使', '酿成',
                           '引发', '渗透', '促进', '引起', '诱导', '引来', '促发', '引致', '诱发', '推进', '诱致', '推动', '招致', '影响', '致使',
                           '滋生', '归于', '作用', '使得', '决定', '攸关', '令人', '引出', '浸染', '带来', '挟带', '触发', '关系', '渗入', '诱惑',
                           '波及', '诱使'], 'causality'],
@@ -159,13 +159,13 @@ class EventRelationExtractor:
     # 模式匹配集成，句子在此函数中对现有所有模式进行匹配，输出最先匹配到的结果字典
     def all_pattern_match(self, sentence):
         pattern_res = dict()
+        pattern_res = self.pattern_match(self.condition_patterns, sentence)
+        if pattern_res:
+            return pattern_res
         pattern_res = self.pattern_match(self.anti_causality_patterns, sentence)
         if pattern_res:
             return pattern_res
         pattern_res = self.pattern_match(self.causality_patterns, sentence)
-        if pattern_res:
-            return pattern_res
-        pattern_res = self.pattern_match(self.condition_patterns, sentence)
         if pattern_res:
             return pattern_res
         pattern_res = self.pattern_match(self.but_patterns, sentence)
