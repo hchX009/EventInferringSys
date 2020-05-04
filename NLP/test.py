@@ -6,7 +6,7 @@
 
 from event_extractor import EventExtrator
 from event_relation_extractor import EventRelationExtractor
-from file_operation import FileOperation
+from IO.file_operation import FileOperation
 
 if __name__ == '__main__':
     content = ""
@@ -18,7 +18,8 @@ if __name__ == '__main__':
     #'''
     # print(content)
     file_operation = FileOperation()
-    text_list = file_operation.get_file_rows_list("/home/hchx009/Downloads/source_BIO_2014_cropus.txt", 8)
+    flag = 0
+    text_list = file_operation.get_file_rows_list("/home/hchx009/Downloads/text.txt", flag, flag + 20)
     for index in range(len(text_list)):
         content += text_list[index]
     event_sets_list = list()
@@ -37,3 +38,4 @@ if __name__ == '__main__':
     print('\n')
     for j in event_sets_list:
         print(j)
+    file_operation.get_event_relations_list_file(event_sets_list)

@@ -56,10 +56,10 @@ class EventExtrator:
             o = self.complete_subject_or_object(
                 words_list, postags_list, child_nodes_dict_list, child_nodes_dict['VOB'][0])
             triple = [s, v, o]
-        elif 'SVB' in child_nodes_dict:
+        elif 'SBV' in child_nodes_dict:
             v = words_list[index]
             s = self.complete_subject_or_object(
-                words_list, postags_list, child_nodes_dict_list, child_nodes_dict['VOB'][0])
+                words_list, postags_list, child_nodes_dict_list, child_nodes_dict['SBV'][0])
             o = ''
             triple = [s, v, o]
         # 含有介宾关系的主谓动补关系
@@ -134,6 +134,8 @@ class EventExtrator:
                 event_triple = self.get_triple_from_roles(words_list, postags_list, roles_dict, index)
                 if event_triple:
                     event_triples_list.append(event_triple)
+                    # 得到三元组又进行下一轮循环
+                    continue
             # 如果语义角色标记为空，则使用依存句法进行抽取，抽取以谓语为中心的事件三元组
             if postags_list[index] == 'v' and not event_triple:
                 event_triple = self.get_triple_from_arcs(words_list, postags_list,
@@ -143,6 +145,19 @@ class EventExtrator:
         return event_triples_list
 
     # 过滤掉属于从句或者多余的event_triple
+    def drop_unnecssary_event_triples(self, event_triples):
+        event_last_triple = event_triples[0]
+        for event_triple in event_triples:
+            event_str = event_last_str = ""
+            for i in event_triple:
+                event_str += i
+            for j in event_last_triple:
+                event_last_str += j
+            if len(event_str) >= len(event_last_str) and \
+                    event_triple[0] not in event_last_triple[0] or \
+                    event_triple[2] not in event_last_triple[2]:
+                event_last_triple = event_triple
+        return event_last_triple
 
     # 主控制函数
     def event_extrator_main(self, content):
@@ -150,7 +165,10 @@ class EventExtrator:
         events_list = list()
         for data in datas_list:
             event_triples = self.get_event_triples(data)
-            events_list += event_triples
+            if event_triples:
+                #event = event_triples
+                event = self.drop_unnecssary_event_triples(event_triples)
+                events_list.append(event)
         return events_list
 
 

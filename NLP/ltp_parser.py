@@ -35,7 +35,8 @@ class LtpParser:
     # 短句切分。将长句按逗号和顿号切分为短句。返回切分好的短句列表
     def get_subsents(self, sentence):
         subsents_list = list()
-        subsents = re.split(r'[，：,:]', sentence)
+        # 将括号里的语句也分割出来
+        subsents = re.split(r'[，,：:]', sentence)
         # 消去长度为0的子句，并将子句加入列表中
         for subsent in subsents:
             if subsent:
@@ -101,6 +102,11 @@ class LtpParser:
         labeller.load(srl_model_path)
         roles = labeller.label(words_list, postags_list, arcs_list)
         labeller.release()
+        # 尝试释放内存
+        # import gc
+        # del labeller
+        # gc.collect()
+        # 算了，这个不行
         roles_list = list(roles)
         return roles_list
 
