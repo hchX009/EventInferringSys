@@ -1,3 +1,11 @@
+# /usr/bin/env python3
+# coding: utf-8
+# File: netease_spider.py
+# Author: hchX009
+# python 3.5
+# 启动方式：pip下载scrapy框架，然后再在Crawler目录下命令行输入 scrapy crawl netease
+# windows使用要修改pipelines.py文件中的文件夹位置
+
 from scrapy.spiders import Rule, CrawlSpider
 from scrapy.linkextractors import LinkExtractor
 from scrapy.loader import ItemLoader
@@ -7,31 +15,35 @@ import datetime
 
 # 用输入开始日期和结束日期来制作基础网址，格式：20200504
 def get_base_url(start, end):
-    bace_url = "https://news.163.com/"
+    # base_url = "https://news.163.com/"
+    base_url = "https://money.163.com/"
     if start == end:
-        return [bace_url + end[2:3] + '/' + end[4:] + '/']
+        return [base_url + end[2:4] + '/' + end[4:] + '/']
     date_start = datetime.datetime.strptime(start, '%Y%m%d')
     date_end = datetime.datetime.strptime(end, '%Y%m%d')
-    bace_urls_list = list()
+    base_urls_list = list()
     while date_start <= date_end:
-        bace_urls_list.append(bace_url + date_start.strftime('%Y/%m%d')[2:] + '/')
+        base_urls_list.append(base_url + date_start.strftime('%Y/%m%d')[2:] + '/')
         date_start += datetime.timedelta(days=1)
-    return bace_urls_list
+    return base_urls_list
 
 
 class NetEaseSpider(CrawlSpider):
     # 爬虫名称
     name = 'netease'
     # 定义爬取网址
-    start_urls = ['https://news.163.com/domestic/',
-                  'https://news.163.com/world/']
+    # start_urls = ['https://news.163.com/domestic/',
+    #              'https://news.163.com/world/']
+    start_urls = ['https://money.163.com/']
     # 允许的爬取域
-    allowed_domains = ['news.163.com']
+    # allowed_domains = ['news.163.com']
+    allowed_domains = ['money.163.com']
 
     # 爬取规则
+    # 日期区间在get_base_url后输入
     rules = [
         Rule(LinkExtractor(allow=r'({0})\d+/.*?html'.format(bace_url)
-                           ), callback='parse_item', follow=True) for bace_url in get_base_url('20200503', '20200504')
+                           ), callback='parse_item', follow=True) for bace_url in get_base_url('20200505', '20200505')
     ]
 
     def parse_item(self, response):
