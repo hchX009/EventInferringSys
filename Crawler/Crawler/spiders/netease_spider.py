@@ -48,8 +48,12 @@ class NetEaseSpider(CrawlSpider):
     def get_text(self, response, item):
         text = response.css('.post_text p::text').extract()
         if text:
-            print('text:{}'.format(text))
-            item['news_text'] = text
+            print('text:{}'.format(text).replace(' ', ''))
+            new_text = list()
+            for line in text:
+                if line:
+                    new_text.append(line.replace(' ', '').replace('\n', '').replace('\t', ''))
+            item['news_text'] = new_text
 
     def get_url(self, response, item):
         url = response.url
