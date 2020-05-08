@@ -5,9 +5,13 @@
 # python 3.5
 
 
+from scrapy.exporters import CsvItemExporter
+
+
 class FileOperation():
     # 定义事件关系文件名称
-    EVENT_RELATIONS_LIST_FILE_NAME = "/home/hchx009/Downloads/event_relations_list.txt"
+    EVENT_RELATIONS_LIST_FILE_NAME = "/home/hchx009/Downloads/event_relations_list.csv"
+    NEWS_DATA_FILE_NAME = "/home/hchx009/Downloads/news_data.csv"
 
     def __init__(self):
         pass
@@ -29,7 +33,7 @@ class FileOperation():
         fd.close()
         return file_rows_list
 
-    # 将输出的关系对转化为txt文本
+    # 将输出的事件关系对转化为txt文本
     def get_event_relations_list_file(self, event_sets_list):
         fd = open(self.EVENT_RELATIONS_LIST_FILE_NAME, 'a')
         for event_set in event_sets_list:
@@ -42,15 +46,24 @@ class FileOperation():
             for event_post in events_list_post:
                 post = post + ''.join(event_post)
             if pre and post:
-                output_line = pre + '--' + event_set[1] + '->' + post + '\n'
+                output_line = pre + ',' + event_set[1] + ',' + post + '\n'
                 fd.write(output_line)
             '''
             for event_pre in events_list_pre:
                 for event_post in events_list_post:
                     if event_pre and event_post:
-                        output_line = ''.join(event_pre) + '--' + event_set[1] + '->' + ''.join(event_post) + '\n'
+                        output_line = ''.join(event_pre) + ',' + event_set[1] + ',' + ''.join(event_post) + '\n'
                         fd.write(output_line)
         return
+
+    # 输出新闻csv文件
+    def get_news_list_file(self, item):
+        file = open(self.NEWS_DATA_FILE_NAME, 'ab')
+        exporter = CsvItemExporter(file, encoding='UTF-8')
+        exporter.start_exporting()
+        exporter.export_item(item)
+        exporter.finish_exporting()
+        file.close()
 
 
 if __name__ == '__main__':

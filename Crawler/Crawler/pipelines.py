@@ -5,19 +5,21 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
-from scrapy.exporters import CsvItemExporter
+import sys
+sys.path.append("../..")
+from IO.file_operation import FileOperation
+from IO.database_operation import MongoOperation
 
 
 class NewsSpiderPipeline(object):
     def __init__(self):
-        self.file = open('/home/hchx009/Downloads/temp_data.csv', 'wb')
-        self.exporter = CsvItemExporter(self.file, encoding='UTF-8')
-        self.exporter.start_exporting()
+        self.file = FileOperation()
+        self.db = MongoOperation()
 
     def process_item(self, item, spider):
-        self.exporter.export_item(item)
+        self.file.get_news_list_file(item)
+        self.db.news_db_add(item)
         return item
 
     def spider_closed(self, spider):
-        self.exporter.finish_exporting()
-        self.file.close()
+        pass

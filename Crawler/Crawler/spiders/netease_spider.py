@@ -8,15 +8,14 @@
 
 from scrapy.spiders import Rule, CrawlSpider
 from scrapy.linkextractors import LinkExtractor
-from scrapy.loader import ItemLoader
 from Crawler.items import NewsSpiderItem
 import datetime
 
 
 # 用输入开始日期和结束日期来制作基础网址，格式：20200504
 def get_base_url(start, end):
-    # base_url = "https://news.163.com/"
-    base_url = "https://money.163.com/"
+    base_url = "https://news.163.com/"
+    # base_url = "https://money.163.com/"
     if start == end:
         return [base_url + end[2:4] + '/' + end[4:] + '/']
     date_start = datetime.datetime.strptime(start, '%Y%m%d')
@@ -32,18 +31,18 @@ class NetEaseSpider(CrawlSpider):
     # 爬虫名称
     name = 'netease'
     # 定义爬取网址
-    # start_urls = ['https://news.163.com/domestic/',
-    #              'https://news.163.com/world/']
-    start_urls = ['https://money.163.com/']
+    start_urls = ['https://news.163.com/domestic/',
+                 'https://news.163.com/world/']
+    # start_urls = ['https://money.163.com/']
     # 允许的爬取域
-    # allowed_domains = ['news.163.com']
-    allowed_domains = ['money.163.com']
+    allowed_domains = ['news.163.com']
+    # allowed_domains = ['money.163.com']
 
     # 爬取规则
     # 日期区间在get_base_url后输入
     rules = [
         Rule(LinkExtractor(allow=r'({0})\d+/.*?html'.format(bace_url)
-                           ), callback='parse_item', follow=True) for bace_url in get_base_url('20200505', '20200505')
+                           ), callback='parse_item', follow=True) for bace_url in get_base_url('20200508', '20200508')
     ]
 
     def parse_item(self, response):
