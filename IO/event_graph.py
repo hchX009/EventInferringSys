@@ -144,7 +144,7 @@ class EventGraph:
             #    continue
         return nodes, edges
 
-    '''调用VIS插件,进行事件图谱展示'''
+    # 调用VIS插件,进行事件图谱展示
     def show_graph(self, edges, nodes):
         handler = CreatePage()
         #data_nodes, data_edges = handler.collect_data(nodes, edges)
