@@ -3,15 +3,19 @@
 # File: file_operation.py
 # Author: hchX009
 # python 3.5
-
+import os
 
 from scrapy.exporters import CsvItemExporter
 
 
 class FileOperation():
     # 定义事件关系文件名称
-    EVENT_RELATIONS_LIST_FILE_NAME = "/home/hchx009/Downloads/event_relations_list.csv"
-    NEWS_DATA_FILE_NAME = "/home/hchx009/Downloads/news_data.csv"
+    EVENT_RELATIONS_LIST_FILE_NAME = os.path.join(
+        os.path.abspath(os.path.dirname(os.getcwd())), "Data/event_relations_list.csv")
+    NEWS_DATA_FILE_NAME = os.path.join(
+        os.path.abspath(os.path.dirname(os.getcwd())), "Data/news_data.csv")
+    TEST_TEXT_FILE = os.path.join(
+        os.path.abspath(os.path.dirname(os.getcwd())), "Data/text.txt")
 
     def __init__(self):
         pass
@@ -33,7 +37,7 @@ class FileOperation():
         fd.close()
         return file_rows_list
 
-    # 将输出的事件关系对转化为txt文本
+    # 将输出的事件关系对转化为csv文本
     def get_event_relations_list_file(self, event_sets_list):
         fd = open(self.EVENT_RELATIONS_LIST_FILE_NAME, 'a')
         for event_set in event_sets_list:
