@@ -52,3 +52,12 @@ class MongoOperation():
                         datas.append(data)
         res = self.events.insert_many(datas)
         return res
+
+    # 查询并取出数据库中的所有三组元
+    def event_db_get(self):
+        event_triple_sets = list()
+        datas = self.events.find({}, {"id": 0})
+        for data in datas:
+            event_triple_set = data["pre_event"] + ',' + data["relation"] + ',' + data["post_event"]
+            event_triple_sets.append(event_triple_set)
+        return event_triple_sets

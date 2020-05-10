@@ -1,6 +1,9 @@
+我看电影,sequence,我去餐馆
+我去餐馆,sequence,我坐公共交通
+我坐公共交通,anti_causality,我回家
+我坐公共交通,sequence,我回家
 我去餐馆,causality,我看电影
 电影院播放电影,causality,我前往电影院
 电影院播放电影,causality,我看电影
 我坐公共交通,sequence,我前往电影院
 我前往电影院,and,我看电影
-我看电影,sequence,我去餐馆

@@ -5,15 +5,16 @@
 # python 3.5
 
 
-# 构造显示图谱页面
 import os
+from IO.database_operation import MongoOperation
 
 
 class CreatePage:
-    Event_Graph_HTML_FILE = os.path.join(
+    EVENT_GRAPH_HTML_FILE = os.path.join(
         os.path.abspath(os.path.dirname(os.getcwd())), "Data/event_graph.html")
 
     def __init__(self):
+        # 构造显示图谱页面
         self.base = '''
         <html>
         <head>
@@ -87,26 +88,31 @@ class CreatePage:
             data['label'] = edge[1]
             data['to'] = node_dict.get(edge[2])
             data_edges.append(data)
-        return data_nodes, data_edges
+        return [data_nodes, data_edges]
 
     # 利用图数据生成html文件
     def create_html(self, data_nodes, data_edges):
-        fd = open(self.Event_Graph_HTML_FILE, 'w+')
+        fd = open(self.EVENT_GRAPH_HTML_FILE, 'w+')
         html = self.base.replace('data_nodes', str(data_nodes)).replace('data_edges', str(data_edges))
         fd.write(html)
         fd.close()
 
 
 class EventGraph:
+    # 关系文件位置
     EVENT_RELATIONS_LIST_FILE_NAME = os.path.join(
         os.path.abspath(os.path.dirname(os.getcwd())), "Data/event_relations_list.csv")
 
     def __init__(self):
-        fd = open(self.EVENT_RELATIONS_LIST_FILE_NAME, 'r')
-        self.event_triple_sets = fd.readlines()
+        # fd = open(self.EVENT_RELATIONS_LIST_FILE_NAME, 'r')
+        # self.event_triple_sets = fd.readlines()
+        db = MongoOperation()
+        self.event_triple_sets = db.event_db_get()
+        print('\n'.join(self.event_triple_sets))
 
     # 统计事件频次
-    def collect_events_frequence(self):
+    def get_frequence(self):
+        event_dict = dict()
         relation_dict = dict()
         node_dict = dict()
         for event_triple_set in self.event_triple_sets:
@@ -124,41 +130,50 @@ class EventGraph:
                 relation_dict[relation] = 1
             else:
                 relation_dict[relation] += 1
-        return node_dict, relation_dict #relation换成事件
+            if event_triple not in event_dict:
+                event_dict[event_triple] = 1
+            else:
+                event_dict[event_triple] += 1
+        return [node_dict, relation_dict, event_dict]
 
     # 构建事理图谱的节点和边
     def get_graph_nodes_and_edges(self):
         edges = list()
         nodes = list()
-        #for event in sorted(event_dict.items(), key=lambda asd: asd[1], reverse=True)[:500]:
-        for event_triple_set in self.event_triple_sets:
-            event_triple = event_triple_set.strip()
+        frequence_static = self.get_frequence()
+        node_dict = frequence_static[0]
+        relation_dict = frequence_static[1]
+        event_dict = frequence_static[2]
+        # 将event_dict降序排列取前500位
+        for event_triple_set in sorted(event_dict.items(), key=lambda asd: asd[1], reverse=True)[:500]:
+            event_triple = event_triple_set[0].strip()
             e1 = event_triple.split(',')[0]
             r = event_triple.split(',')[1]
             e2 = event_triple.split(',')[2]
-            #if e1 in node_dict and e2 in node_dict:
-            nodes.append(e1)
-            nodes.append(e2)
-            edges.append([e1, r, e2])
-            #else:
-            #    continue
-        return nodes, edges
+            if e1 in node_dict and e2 in node_dict and r in relation_dict:
+                nodes.append(e1)
+                nodes.append(e2)
+                edges.append([e1, r, e2])
+            else:
+                continue
+        return [nodes, edges]
 
     # 调用VIS插件,进行事件图谱展示
-    def show_graph(self, edges, nodes):
-        handler = CreatePage()
-        #data_nodes, data_edges = handler.collect_data(nodes, edges)
-        #handler.create_html(data_nodes, data_edges)
+    def output_event_graph(self, nodes, edges):
+        page = CreatePage()
+        graph_data = page.get_graph_data(nodes, edges)
+        print("Data_nodes:")
+        print(graph_data[0])
+        print("Data_edges:")
+        print(graph_data[1])
+        page.create_html(graph_data[0], graph_data[1])
 
 
 if __name__ == "__main__":
-    t = EventGraph()
-    a, b = t.get_graph_nodes_and_edges()
-    c, d = t.collect_events_frequence()
-    print(c)
-    print(d)
-    q = CreatePage()
-    e, f = q.get_graph_data(a, b)
-    print(e)
-    print(f)
-    q.create_html(e, f)
+    event_graph = EventGraph()
+    nodes_and_edges = event_graph.get_graph_nodes_and_edges()
+    print("Nodes:")
+    print(nodes_and_edges[0])
+    print("Edges:")
+    print(nodes_and_edges[1])
+    event_graph.output_event_graph(nodes_and_edges[0], nodes_and_edges[1])

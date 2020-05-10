@@ -8,8 +8,8 @@
         <body>
             <div id="VIS_draw"></div>
             <script type="text/javascript">
-                var nodes = [{'label': '我去餐馆', 'id': 11}, {'label': '我坐公共交通', 'id': 6}, {'label': '电影院播放电影', 'id': 4}, {'label': '我看电影', 'id': 10}, {'label': '我前往电影院', 'id': 8}];
-                var edges = [{'label': 'causality', 'from': 11, 'to': 10}, {'label': 'causality', 'from': 4, 'to': 8}, {'label': 'causality', 'from': 4, 'to': 10}, {'label': 'sequence', 'from': 6, 'to': 8}, {'label': 'and', 'from': 8, 'to': 10}, {'label': 'sequence', 'from': 10, 'to': 11}];
+                var nodes = [{'id': 14, 'label': '我坐公共交通'}, {'id': 17, 'label': '我看电影'}, {'id': 16, 'label': '电影院播放电影'}, {'id': 15, 'label': '我前往电影院'}, {'id': 10, 'label': '我去餐馆'}, {'id': 9, 'label': '我回家'}];
+                var edges = [{'from': 17, 'to': 10, 'label': 'sequence'}, {'from': 16, 'to': 15, 'label': 'causality'}, {'from': 14, 'to': 9, 'label': 'anti_causality'}, {'from': 10, 'to': 17, 'label': 'causality'}, {'from': 14, 'to': 9, 'label': 'sequence'}, {'from': 10, 'to': 14, 'label': 'sequence'}, {'from': 15, 'to': 17, 'label': 'and'}, {'from': 14, 'to': 15, 'label': 'sequence'}, {'from': 16, 'to': 17, 'label': 'causality'}];
                 var container = document.getElementById("VIS_draw");
                 var data = {
                     nodes: nodes,
