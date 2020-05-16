@@ -8,10 +8,17 @@ from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
 
 words_embedding_file = "../Data/Tencent_AILab_ChineseEmbedding/Tencent_AILab_ChineseEmbedding.txt"
-wv_from_text = KeyedVectors.load_word2vec_format(words_embedding_file, binary=False)
+wv_from_text = KeyedVectors.load_word2vec_format(words_embedding_file, binary=False, limit=100000)
+wv_from_text.init_sims(replace=True)
 
-sentences = [[],[]]
+word = '书记'
+
+vector = wv_from_text[word]
+
+print(vector)
+
+#sentences = [[],[]]
 
 # 使用默认CBOW算法，默认维数100
-model = Word2Vec(sentences, min_count=1)
+#model = Word2Vec(sentences, min_count=1)
 
