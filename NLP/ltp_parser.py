@@ -18,10 +18,8 @@ from pyltp import SentenceSplitter, Segmentor, Postagger, NamedEntityRecognizer,
 
 
 class LtpParser:
-
-    ltp_dir_path = "./ltp_data_v3.4.0"
-
     def __init__(self):
+        self.ltp_dir_path = os.path.abspath(os.path.dirname(__file__)) + "/ltp_data_v3.4.0"
         pass
 
     # 长句切分。将段落分句，将一段话或一篇文章中的文字按句子分开，按句子形成独立的单元。返回切分好的句子列表
