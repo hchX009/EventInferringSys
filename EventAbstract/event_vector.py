@@ -34,7 +34,9 @@ class EventVector:
 
     # 得到事件的向量（词向量平均得到）
     def get_event_vectors(self, event_sets):
+        events_list = list()
         for event in event_sets:
+            event_dict = dict()
             words_list = self.ltp_parser.get_words_by_pyltp(event)
             # print(words_list)
             # 建立长度向量长度的0向量
@@ -45,12 +47,16 @@ class EventVector:
                 vector_sum = list(numpy.array(vector_sum) + numpy.array(vector))
             # print(vector_sum)
             event_vector = [i / len(words_list) for i in vector_sum]
-            print(event_vector)
-        return
+            event_dict["event"] = event
+            event_dict["vector"] = event_vector
+            events_list.append(event_dict)
+        return events_list
 
 
 if __name__ == "__main__":
     event_vector = EventVector()
     event_sets = event_vector.get_event_from_triple()
-    print(event_sets)
-    event_vector.get_event_vectors(event_sets)
+    events_list = event_vector.get_event_vectors(event_sets)
+    print(events_list)
+    event_vector.mongo_operation.vector_db_get(events_list)
+    print("OK!")

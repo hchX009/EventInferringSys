@@ -17,6 +17,7 @@ class MongoOperation():
         # 事件数据库
         self.event_db = self.myclient["eventdb"]
         self.events = self.event_db["events"]
+        self.vector = self.event_db["vectors"]
         # 抽象事件数据库
         self.abstract_event_db = self.myclient["abstractdb"]
         self.abstracts = self.abstract_event_db["abstracts"]
@@ -61,3 +62,12 @@ class MongoOperation():
             event_triple_set = data["pre_event"] + ',' + data["relation"] + ',' + data["post_event"]
             event_triple_sets.append(event_triple_set)
         return event_triple_sets
+
+    # 将事件和对应的向量存入数据库中
+    def vector_db_get(self, datalines):
+        datas = list()
+        for event in datalines:
+            # 感觉其实不用循环……
+            datas.append(event)
+        res = self.vector.insert_many(datas)
+        return res
