@@ -6,6 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/Crawler" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/IO" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/EventAbstract" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.5 (EventInferringSys)" jdkType="Python SDK" />
