@@ -7,15 +7,7 @@
 import numpy
 import math
 import random
-import collections
 
-
-class Kmean:
-    def __init__(self):
-        pass
-
-    def do_cluster(self, mintoler, numiter):
-        pass
 
 # 多维向量点类
 class Point:
@@ -53,8 +45,7 @@ class Point:
 class Cluster:
     def __init__(self, center):
         self.center = center
-
-        self.points = collections.defaultdict(lambda: 0)
+        self.points = dict()
 
     def add_point(self, p):
         self.points[p] = 1
@@ -65,7 +56,7 @@ class Cluster:
 
     # 更新类中心
     def update_center(self):
-        if (len(self.points) == 0):
+        if len(self.points) == 0:
             return
         sum_vect = [0] * len(self.center)
         for p in self.points.keys():
@@ -73,7 +64,8 @@ class Cluster:
         self.center = numpy.divide(sum_vect, len(self.points))
 
 
-class Kmeanplusplus(Kmean):
+# K-mean++算法实现
+class Kmeanplusplus():
     def __init__(self, dataset, num_cluster):
         self.dataset = dataset
         self.num_point = len(dataset)
@@ -84,7 +76,8 @@ class Kmeanplusplus(Kmean):
         for i in range(self.num_point):
             point = Point(dataset[i])
             self.points.append(point)
-# ===
+
+    # 初始化中心点
     def init_centers(self):
         # 随机初始化中心
         new_cluster_index = int(random.random() * self.num_point)
@@ -92,73 +85,82 @@ class Kmeanplusplus(Kmean):
         dist_squ_sum = 0.0
         token[new_cluster_index] = 0
 
-        # ===
         seed_cluster = Cluster(self.dataset[new_cluster_index])
         self.clusters.append(seed_cluster)
         new_cluster = seed_cluster
-        for i in range(self.numPoint):
+
+        for i in range(self.num_point):
             point = self.points[i]
             dist = point.compute_euclidean_distance(new_cluster.center)
             point.set_cluster(new_cluster, dist)
-            if (token[i]):
+            if token[i]:
                 dist_squ_sum += math.pow(dist, 2)
         k = 1
-        while (k < self.numCluster):
-            # random to select a point as the center of a new cluster
-            rdist = random.random() * dist_squ_sum
+        while k < self.num_cluster:
+            # 随机选择一个点作为新的中心
+            rdist = random.random() * (dist_squ_sum / self.num_point)
             new_cluster_index = -1
             tmp = 0
-            for i in range(self.numPoint):
+            for i in range(self.num_point):
                 tmp += self.points[i].get_dist()
-                if (tmp >= rdist):
+                if tmp >= rdist:
                     new_cluster_index = i
-
+                    break
             new_cluster = Cluster(self.dataset[new_cluster_index])
-            self.clusters.append(new_cluster);
+            self.clusters.append(new_cluster)
             k += 1
             dist_squ_sum = 0.0
-            # update the euclidean distance between the point and its newest center
-            for i in range(self.numPoint):
+
+            # 更新点与类中心的欧式距离
+            for i in range(self.num_point):
                 point = self.points[i]
-                if (token[i]):
+                if token[i]:
                     dist = point.compute_euclidean_distance(new_cluster.center)
-                    if (dist < point.get_dist()):
+                    if dist < point.get_dist():
                         point.set_cluster(new_cluster, dist)
                     dist_squ_sum += math.pow(point.get_dist(), 2)
-
             token[new_cluster_index] = 0
 
+    # 分配点到不同的类
     def assign_point_cluster(self, point):
-        mindist = point.get_dist()
-        cluster = point.cluster
-        change = 0
-        for c in self.clusters:
-            dist = point.compute_euclidean_distance(c.center)
-            if (dist < mindist):
-                cluster = c
-                mindist = dist
-                change = 1
-        if change:
-            point.set_cluster(cluster, mindist)
-        return change
+        min_dist = point.get_dist()
+        p_cluster = point.cluster
+        flag = 0
+        for cluster in self.clusters:
+            dist = point.compute_euclidean_distance(cluster.center)
+            if dist < min_dist:
+                p_cluster = cluster
+                min_dist = dist
+                flag = 1
+        if flag:
+            point.set_cluster(p_cluster, min_dist)
+        return flag
 
     def do_cluster(self, numiter):
-        # Select the initial cluster center randomly
-        self.init_centers();
+        # 随机生成类中心
+        self.init_centers()
 
         for i in range(numiter):
-            change = 0
+            flag = 0
             # E step % update the center for each cluster
             for cluster in self.clusters:
                 cluster.update_center()
 
             # M step % assign the point to the newest cluster
             for point in self.points:
-                change += self.assign_point_cluster(point)
+                flag += self.assign_point_cluster(point)
 
-            if (change == 0):
+            if (flag == 0):
                 break
 
 
 if __name__ == "__main__":
-    pass
+    dataset = [[1, 1], [2, 3], [-1, 4], [5, 2], [-3, -7], [4, -2], [4, 2], [3, 3], [-2, 3], [-5, -3], [2, 5], [1, -2], [3, 0], [0, 0], [1, 6], [1, 7]]
+    kmean = Kmeanplusplus(dataset, 6)
+    kmean.do_cluster(1000)
+    for cluster in kmean.clusters:
+        print("============")
+        print("cluster:")
+        print(cluster.center)
+        for point in cluster.points:
+            print(point.data)
