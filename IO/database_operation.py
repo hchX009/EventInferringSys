@@ -64,10 +64,18 @@ class MongoOperation():
         return event_triple_sets
 
     # 将事件和对应的向量存入数据库中
-    def vector_db_get(self, datalines):
+    def vector_db_add(self, datalines):
         datas = list()
         for event in datalines:
             # 感觉其实不用循环……
             datas.append(event)
         res = self.vector.insert_many(datas)
         return res
+
+    # 取出事件向量
+    def vector_db_get(self):
+        vectors_list = list()
+        datas = self.vector.find({}, {"id": 0})
+        for data in datas:
+            vectors_list.append(data)
+        return vectors_list

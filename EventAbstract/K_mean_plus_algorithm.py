@@ -7,6 +7,7 @@
 import numpy
 import math
 import random
+from IO.database_operation import MongoOperation
 
 
 # 多维向量点类
@@ -155,8 +156,14 @@ class Kmeanplusplus():
 
 
 if __name__ == "__main__":
-    dataset = [[1, 1], [2, 3], [-1, 4], [5, 2], [-3, -7], [4, -2], [4, 2], [3, 3], [-2, 3], [-5, -3], [2, 5], [1, -2], [3, 0], [0, 0], [1, 6], [1, 7]]
-    kmean = Kmeanplusplus(dataset, 6)
+    mongo_operation = MongoOperation()
+    vectors_list = mongo_operation.vector_db_get()
+    dataset = list()
+    for vector_dict in vectors_list:
+        dataset.append(vector_dict["vector"])
+    # dataset = [[1, 1], [2, 3], [-1, 4], [5, 2], [-3, -7], [4, -2], [4, 2], [3, 3], [-2, 3], [-5, -3], [2, 5], [1,
+    # -2], [3, 0], [0, 0], [1, 6], [1, 7]]
+    kmean = Kmeanplusplus(dataset, 4)
     kmean.do_cluster(1000)
     for cluster in kmean.clusters:
         print("============")
@@ -164,3 +171,6 @@ if __name__ == "__main__":
         print(cluster.center)
         for point in cluster.points:
             print(point.data)
+            for vector_dict in vectors_list:
+                if vector_dict["vector"] == point.data:
+                    print(vector_dict["event"])

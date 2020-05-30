@@ -58,5 +58,5 @@ if __name__ == "__main__":
     event_sets = event_vector.get_event_from_triple()
     events_list = event_vector.get_event_vectors(event_sets)
     print(events_list)
-    event_vector.mongo_operation.vector_db_get(events_list)
+    event_vector.mongo_operation.vector_db_add(events_list)
     print("OK!")
